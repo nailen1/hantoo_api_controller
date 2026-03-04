@@ -8,7 +8,7 @@
 - **계좌 잔고 조회** — 보유종목, 평가손익, 예수금 등 계좌 전체 현황
 - **현재가 조회** — 종목코드로 실시간 현재가 조회
 - **매수/매도 주문** — 지정가·시장가 주문 바디 생성 및 전송
-- **금액 기준 매수** — 총 투자금액을 입력하면 매수 가능 수량을 자동 환산
+- **금액 기준 매수/매도** — 총 투자금액을 입력하면 매수·매도 가능 수량을 자동 환산
 - **주문 체결 내역 조회** — 일별 주문·체결 내역 조회
 - **한국어 컬럼 변환** — API 응답의 영문 컬럼명을 한국어 전문 용어로 변환
 
@@ -76,14 +76,20 @@ resp = session.buy(body)
 ### 매도 주문
 
 ```python
+# 수량 지정
 body = session.build_sell_order_body("005930", quantity=10, order_type="limit", price=70000)
+
+# 금액 기준 (현재가 자동 조회)
+body = session.build_sell_order_body_by_amount("005930", amount=1_000_000)
+
+# 주문 전송
 resp = session.sell(body)
 ```
 
 ### 주문 체결 내역 조회
 
 ```python
-orders, order_summary = session.inquire_daily_ccld(option_kor_cols=True)
+orders, order_summary = session.get_order_history(option_kor_cols=True)
 ```
 
 ## 프로젝트 구조

@@ -1,0 +1,4 @@
+# 한국투자증권 API Controller 의존성
+requests>=2.31.0
+pandas>=2.0.0
+python-dotenv>=1.0.0

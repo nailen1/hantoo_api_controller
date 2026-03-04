@@ -1,0 +1,35 @@
+# Virtual environments
+env-hantoo/
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+notebooks/test-hantoo.ipynb
+
+# Environment variables
+.env
+
+# Token cache
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

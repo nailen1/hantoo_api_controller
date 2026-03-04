@@ -87,6 +87,41 @@ class HantooSession:
             symbol, quantity, order_type, price=price, config=self._config
         )
 
+    def build_sell_order_body_by_amount(
+        self,
+        symbol: str,
+        amount: int,
+        order_type: Literal["limit", "market"] = "limit",
+        price: Optional[Union[int, float]] = None,
+    ) -> dict:
+        """
+        총 주문금액(원) 기준으로 매도 가능 수량을 환산하여 매도 주문 body를 생성합니다.
+
+        Args:
+            symbol: 종목코드 6자리
+            amount: 총 주문금액 (원)
+            order_type: "limit" 지정가 / "market" 시장가
+            price: 지정가 (미입력 시 현재가 자동 조회)
+
+        Returns:
+            매도 주문 body dict (quantity가 환산된 상태)
+        """
+        if price is None:
+            price = self.current_price_value(symbol)
+            if price is None:
+                raise ValueError(f"종목 {symbol}의 현재가를 조회할 수 없습니다")
+
+        quantity = int(amount // price)
+        if quantity <= 0:
+            raise ValueError(
+                f"주문금액 {amount:,}원으로 {symbol}(단가 {int(price):,}원)을 "
+                f"1주도 매도할 수 없습니다"
+            )
+
+        return build_sell_order_body(
+            symbol, quantity, order_type, price=price, config=self._config
+        )
+
     def build_buy_order_body(
         self,
         symbol: str,
@@ -145,7 +180,7 @@ class HantooSession:
         """매수 주문 전송."""
         return buy(body, config=self._config, client=self._client)
 
-    def inquire_daily_ccld(
+    def get_order_history(
         self,
         *,
         start_date: Optional[str] = None,

@@ -16,7 +16,8 @@ build/
 
 # Jupyter Notebook
 .ipynb_checkpoints/
-notebooks/test-hantoo.ipynb
+notebooks/*.ipynb
+!notebooks/test-init.ipynb
 
 # Environment variables
 .env

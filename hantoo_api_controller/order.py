@@ -27,7 +27,11 @@ TR_ID_BUY_DEMO = "VTTC0012U"
 TR_ID_CCLD_REAL = "TTTC0081R"
 TR_ID_CCLD_DEMO = "VTTC0081R"
 
+TR_ID_CANCEL_REAL = "TTTC0013U"
+TR_ID_CANCEL_DEMO = "VTTC0013U"
+
 ENDPOINT_ORDER_CASH = "/uapi/domestic-stock/v1/trading/order-cash"
+ENDPOINT_ORDER_RVSECNCL = "/uapi/domestic-stock/v1/trading/order-rvsecncl"
 ENDPOINT_INQUIRE_DAILY_CCLD = "/uapi/domestic-stock/v1/trading/inquire-daily-ccld"
 
 
@@ -308,3 +312,55 @@ def inquire_daily_ccld(
             df_summary.rename(columns=MAPPING_KOR_COLUMNS, inplace=True)
 
     return df_orders, df_summary
+
+
+def cancel_order(
+    orgn_odno: str,
+    krx_fwdg_ord_orgno: str = "",
+    *,
+    config: Optional[Config] = None,
+    client: Optional[HantooClient] = None,
+) -> APIResponse:
+    """
+    미체결 주문을 취소합니다.
+
+    Args:
+        orgn_odno: 원주문번호 (주문 응답의 ODNO)
+        krx_fwdg_ord_orgno: 한국거래소전송주문조직번호
+                            (주문 응답의 KRX_FWDG_ORD_ORGNO, 빈 문자열 허용)
+        config: Config 인스턴스
+        client: HantooClient 인스턴스
+
+    Returns:
+        APIResponse
+    """
+    cfg = config or Config.load()
+    if client is None:
+        client = HantooClient(cfg)
+
+    tr_id = TR_ID_CANCEL_REAL if cfg.is_real else TR_ID_CANCEL_DEMO
+
+    body = {
+        "CANO": cfg.account_no,
+        "ACNT_PRDT_CD": cfg.account_product_code,
+        "KRX_FWDG_ORD_ORGNO": krx_fwdg_ord_orgno,
+        "ORGN_ODNO": orgn_odno,
+        "ORD_DVSN": "00",
+        "RVSE_CNCL_DVSN_CD": "02",
+        "ORD_QTY": "0",
+        "ORD_UNPR": "0",
+        "QTY_ALL_ORD_YN": "Y",
+        "EXCG_ID_DVSN_CD": "KRX",
+    }
+
+    extra_headers = {"custtype": "P"}
+    body_str = json.dumps(body, ensure_ascii=False)
+    response = client.post(
+        ENDPOINT_ORDER_RVSECNCL, tr_id, extra_headers=extra_headers, body_json_str=body_str
+    )
+
+    if response.success:
+        logger.info("주문 취소 성공: %s %s", orgn_odno, response.message)
+    else:
+        logger.warning("주문 취소 실패: %s %s", orgn_odno, response.message)
+    return response

@@ -10,8 +10,15 @@ import pandas as pd
 from .account import get_info_account
 from .api_client import APIResponse, HantooClient
 from .config import Config
-from .order import build_buy_order_body, build_sell_order_body, buy, inquire_daily_ccld, sell
-from .quote import current_price_value, get_current_price
+from .order import build_buy_order_body, build_sell_order_body, buy, cancel_order, inquire_daily_ccld, sell
+from .quote import (
+    current_price_value,
+    get_ask_prices,
+    get_bid_prices,
+    get_current_price,
+    get_orderbook,
+    get_orderbook_df,
+)
 
 
 class HantooSession:
@@ -217,6 +224,31 @@ class HantooSession:
             odno=odno,
             translate_columns=translate_columns,
             option_kor_cols=option_kor_cols,
+            config=self._config,
+            client=self._client,
+        )
+
+    def get_orderbook(self, symbol: str) -> APIResponse:
+        """종목의 매수/매도 호가창(10단계) 조회."""
+        return get_orderbook(symbol, config=self._config, client=self._client)
+
+    def get_ask_prices(self, symbol: str) -> list:
+        """매도호가 10단계를 [{price, volume}, ...] 형태로 반환."""
+        return get_ask_prices(symbol, config=self._config, client=self._client)
+
+    def get_bid_prices(self, symbol: str) -> list:
+        """매수호가 10단계를 [{price, volume}, ...] 형태로 반환."""
+        return get_bid_prices(symbol, config=self._config, client=self._client)
+
+    def get_orderbook_df(self, symbol: str) -> "pd.DataFrame":
+        """호가창을 DataFrame으로 반환. 컬럼: 매수잔량 | 가격 | 매도잔량"""
+        return get_orderbook_df(symbol, config=self._config, client=self._client)
+
+    def cancel_order(self, orgn_odno: str, krx_fwdg_ord_orgno: str = "") -> APIResponse:
+        """미체결 주문을 취소합니다."""
+        return cancel_order(
+            orgn_odno,
+            krx_fwdg_ord_orgno,
             config=self._config,
             client=self._client,
         )
